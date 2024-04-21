@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@now/static-build",
+      "config": { "zeroConfig": true }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
