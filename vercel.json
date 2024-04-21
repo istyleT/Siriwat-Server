@@ -3,8 +3,7 @@
   "builds": [
     {
       "src": "index.html",
-      "use": "@now/node",
-      "config": { "zeroConfig": true }
+      "use": "@now/node"
     }
   ],
   "routes": [
