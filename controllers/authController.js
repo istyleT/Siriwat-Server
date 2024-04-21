@@ -2,7 +2,7 @@ const { promisify } = require("util");
 const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
-const sendEmail = require("../utils/email");
+// const sendEmail = require("../utils/email");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { cp } = require("fs");
@@ -28,37 +28,9 @@ const createSendToken = async (user, statusCode, res) => {
   res.cookie("jwt", token, cookieOptions);
   // 3.remove password form output
   user.password = undefined;
-  // 4.set accesslevel
-  let accesslevel = 0;
-  switch (user.role) {
-    case "Owner":
-      accesslevel = 5;
-      break;
-    case "GM":
-      accesslevel = 4;
-      break;
-    case "Admin":
-      accesslevel = 4;
-      break;
-    case "Manager":
-      accesslevel = 3;
-      break;
-    case "Officer":
-      accesslevel = 3;
-      break;
-    case "Team-Lead":
-      accesslevel = 2;
-      break;
-    case "Sale":
-      accesslevel = 1;
-      break;
-    default:
-      throw new Error("UnKnow action type in reducer function");
-  }
-  // 5.send response
+  // 4.send response
   res.status(statusCode).json({
     status: "success",
-    accesslevel: accesslevel,
     token,
     data: {
       data: user,
@@ -80,7 +52,6 @@ exports.restrictTo = (...roles) => {
 };
 exports.restrictDepart = (...departments) => {
   return (req, res, next) => {
-    // department ["Sell", "Marketing", "Programmer"]
     if (!departments.includes(req.user.department)) {
       res.status(403).json({
         message: "คุณไม่ได้รับอนุญาติการใช้งานในส่วนนี้",
@@ -131,8 +102,8 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 exports.defalutPassword = catchAsync(async (req, res, next) => {
-  req.body.password = "Password1234@";
-  req.body.passwordConfirm = "Password1234@";
+  req.body.password = "Password_1234";
+  req.body.passwordConfirm = "Password_1234";
   next();
 });
 
@@ -141,14 +112,13 @@ exports.signup = catchAsync(async (req, res, next) => {
     username: req.body.username,
     firstname: req.body.firstname,
     lastname: req.body.lastname,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
+    password: req.body.password, //ได้จาก middleware defalutPassword
+    passwordConfirm: req.body.passwordConfirm, //ได้จาก middleware defalutPassword
     department: req.body.department,
     role: req.body.role,
     team: req.body.team,
     branch: req.body.branch,
     email: req.body.email,
-    imageprofile: req.body.imageprofile,
     contact: req.body.contact,
   });
   createSendToken(newUser, 201, res);

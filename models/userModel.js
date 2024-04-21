@@ -42,7 +42,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "ต้องระบุ แผนก"],
     enum: {
-      values: ["Sell", "Marketing", "Sevice", "Account", "IT", "HR", "Admin"],
+      values: [
+        "Sell",
+        "Marketing",
+        "Service",
+        "Account",
+        "IT",
+        "HR",
+        "Admin",
+        "Owner",
+      ],
       message: "แผนกไม่ถูกต้อง",
     },
   },
@@ -84,7 +93,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordChangedAt: { type: Date, select: false },
   // เพิ่มทีละ 1 เมื่อpassword ผิดติดกัน 5 ครั้ง ระบบจะระงับการใช้งาน
-  attemptlogin: { type: Number, default: 0 },
+  attemptlogin: { type: Number, default: 0, select: false },
 });
 
 userSchema.pre("save", function (next) {
@@ -111,3 +120,20 @@ userSchema.methods.correctPassword = async function (
 ) {
   return await bcrypt.compareSync(candidatePassword, userPassword);
 };
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    console.log(this.passwordChangedAt, JWTTimestamp);
+    return JWTTimestamp < changedTimestamp; // 100 < 200
+  }
+  // False means NOT changed
+  return false;
+};
+
+const User = mongoose.model("User", userSchema);
+
+module.exports = User;
