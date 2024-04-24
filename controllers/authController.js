@@ -5,7 +5,6 @@ const catchAsync = require("../utils/catchAsync");
 // const sendEmail = require("../utils/email");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { cp } = require("fs");
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -139,13 +138,19 @@ exports.login = catchAsync(async (req, res, next) => {
     });
   }
   //user ถูกเเต่ password ไม่ถูกต้อง
+  if (!user.active) {
+    return res.status(401).json({
+      status: "fail",
+      message: "บัญชีถูกระงับการใช้งาน",
+    });
+  }
   if (user && !(await user.correctPassword(password, user.password))) {
     const attemptlogin = user.attemptlogin + 1;
     await User.findOneAndUpdate(user._id, { attemptlogin: attemptlogin });
     if (attemptlogin >= 5) {
       await User.findOneAndUpdate(user._id, { active: false });
       return res.status(401).json({
-        message: `บัญชีถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ`,
+        message: `บัญชีถูกระงับการใช้งาน`,
         status: "fail",
       });
     }

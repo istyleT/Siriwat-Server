@@ -93,7 +93,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordChangedAt: { type: Date, select: false },
   // เพิ่มทีละ 1 เมื่อpassword ผิดติดกัน 5 ครั้ง ระบบจะระงับการใช้งาน
-  attemptlogin: { type: Number, default: 0, select: false },
+  attemptlogin: { type: Number, default: 0 },
 });
 
 userSchema.pre("save", function (next) {

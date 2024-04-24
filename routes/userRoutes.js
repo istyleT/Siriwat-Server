@@ -4,17 +4,9 @@ const {
   getAllUser,
   updateUser,
   deleteUser,
-  checkUser,
-  updateMe,
-  setNameimg,
-  // setUserlevel,
-  // uploadProfileImage,
-  getAllSales,
 } = require("../controllers/userController");
 const {
   signup,
-  // forgetPassword,
-  // resetPassword,
   updatePassword,
   defalutPassword,
   setDefalutPassword,
@@ -25,27 +17,17 @@ const {
 
 // Authentication Routes
 router.route("/login").post(login);
-// router.route("/forgetpassword").post(forgetPassword);
-// router.route("/resetpassword/:token").patch(resetPassword);
-// router.route("/updatepassword").put(protect, updatePassword);
 
 //Middleware Router After Authentication
-// router.use(protect);
+router.use(protect);
+router.route("/").get(restrictTo("GM,Owner"), getAllUser);
+//ตั้งค่า password ใหม่ของตัวเอง
+router.route("/updatepassword").put(protect, updatePassword);
 
-router.route("/").get(getAllUser);
+// Officer , Sale , Team-Lead ไม่มีสิทธิ์เข้าถึง
+router.use(restrictTo("Owner", "GM", "Admin", "Manager"));
 
-// router.route("/updateme/:id").put(uploadProfileImage, setNameimg, updateMe);
-
-// Middleware Router After this
-// router.use(restrictTo("Owner", "GM", "Admin", "Manager", "Team-Lead"));
-
-//เรียกข้อมูล user ที่เป็น sale ทั้งหมด
-// router.route("/sale").get(getAllSales);
-
-// ทำงานตอนสม้คร user ใหม่ว่ามี  username ซ้ำกับในระบบหรือไม่
-router.route("/checkusername").get(checkUser);
-
-//เพิ่ม user ใหม่
+//เพิ่ม user ใหม่เข้าระบบ
 router.route("/signup").post(defalutPassword, signup);
 
 // เปลี่ยน user password เป็น default

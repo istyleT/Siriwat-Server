@@ -13,7 +13,7 @@ const DB = process.env.DATABASE.replace(
 mongoose
   .connect(DB, {
     useNewUrlParser: true,
-    useUnifiedTopology: true,
+    // useUnifiedTopology: true,
   })
   .then(() => console.log("DB connection successful!"));
 

@@ -1,45 +1,83 @@
-var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
+var bodyParser = require("body-parser");
+var path = require("path");
 var cookieParser = require("cookie-parser");
-var logger = require("morgan");
+var rateLimit = require("express-rate-limit");
+var helmet = require("helmet");
+var mongoSanitize = require("express-mongo-sanitize");
+var xss = require("xss-clean");
+var hpp = require("hpp");
+var morgan = require("morgan");
+var cors = require("cors");
+const globalErrorHandler = require("./controllers/errorController");
+const priceRouter = require("./routes/appRoutes/pricelistRoutes");
+const usersRouter = require("./routes/userRoutes");
 
-var indexRouter = require("./routes/index");
-// var usersRouter = require("./routes/users");
-var priceRouter = require("./routes/appRoutes/pricelistRoutes");
-var usersRouter = require("./routes/userRoutes");
-
-var app = express();
+const app = express();
 
 // view engine setup
-app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
+app.set("views", path.join(__dirname, "views"));
 
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+// Serving static files
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
+//Global Middleware
+app.use(express.static(path.join(__dirname, "public")));
+// Set secure HTTP headers
+app.use(helmet());
+// Set cors origin
+app.use(cors());
+
+// ป้องกัน Bot Attack ขอ requset จนเว็บล่ม
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 30 * 60 * 1000,
+  message: "IP นี้มี request มากเกินไปกรุณาลองใหม่ในอีกครึ่งชั่วโมง",
+});
+app.use("/", limiter);
+
+// ป้องกัน NoSQL Injection
+app.use(mongoSanitize()); //สงเสัยการกรองเครื่องหมาย+
+// ป้องกัน XSS cross-side-scripting เขียน code เข้ามาเป็น input
+app.use(xss());
+// ป้องกัน parameter polution
+app.use(hpp());
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(cookieParser());
+
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+
+app.use((req, res, next) => {
+  const x = (req.requestTime = new Date().toISOString());
+  console.log(x);
+  // console.log(req.headers);
+  next();
+});
+
+// ROUTES Pages Pug
+app.get("/", (req, res) => {
+  res.status(200).render("base", {
+    page: "Welcome to Siriwat Server",
+  });
+});
+
+// Global Routes
 app.use("/users", usersRouter);
 // first routes
 app.use("/price", priceRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
+// ค้นหา ROUTES ไม่พบ
+app.all("*", (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
-});
+// Global handle error Middleware
+app.use(globalErrorHandler);
 
 module.exports = app;
