@@ -76,7 +76,7 @@ app.get("/testapi", (req, res) => {
   });
 });
 
-// Global Routes
+// Global Routes dfsdf
 app.use("/users", usersRouter);
 // first routes
 app.use("/price", priceRouter);
