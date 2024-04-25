@@ -27,8 +27,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, "public")));
 // Set secure HTTP headers
 app.use(helmet());
-// Set cors origin
-app.use(cors());
 
 // ป้องกัน Bot Attack ขอ requset จนเว็บล่ม
 const limiter = rateLimit({
@@ -37,6 +35,11 @@ const limiter = rateLimit({
   message: "IP นี้มี request มากเกินไปกรุณาลองใหม่ในอีกครึ่งชั่วโมง",
 });
 app.use("/", limiter);
+
+// Set cors origin
+app.use(cors());
+// Set file size limit
+app.use(express.json({ limit: "50kb" }));
 
 // ป้องกัน NoSQL Injection
 app.use(mongoSanitize()); //สงเสัยการกรองเครื่องหมาย+
@@ -47,7 +50,7 @@ app.use(hpp());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(cookieParser());
+// app.use(cookieParser());
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -62,6 +65,12 @@ app.use((req, res, next) => {
 
 // ROUTES Pages Pug
 app.get("/", (req, res) => {
+  res.status(200).render("base", {
+    page: "Welcome to Siriwat Server",
+  });
+});
+
+app.get("/testapi", (req, res) => {
   res.status(200).render("base", {
     page: "Welcome to Siriwat Server",
   });

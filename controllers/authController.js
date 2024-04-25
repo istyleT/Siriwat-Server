@@ -36,6 +36,7 @@ const createSendToken = async (user, statusCode, res) => {
     },
   });
 };
+
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     // role ['Owner', 'Admin', 'Sale', 'GM', 'Team-Lead',"Manager","Officer"]
@@ -124,6 +125,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const { username, password } = req.body;
   // 1) ตรวจสอบว่ามี username และ password หรือไม่ ตรงนี้ควรป้องกันตั้งเเต่ Browser
   if (!username || !password) {
